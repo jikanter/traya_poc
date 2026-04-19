@@ -1,3 +1,4 @@
 opencv-python-headless
 PIL
 numpy
+streamlit>=1.52.0
