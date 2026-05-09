@@ -25,9 +25,9 @@ if 'messages' not in st.session_state:
     st.session_state.messages = []
 
 
-if mode not in ('athlete', 'coach'):
+if mode not in ('athlete', 'coach', 'parent'):
     st.markdown("### ❗Invalid Mode, try again.")
-    st.markdown("Login is a [Coach](?mode=coach) or an [Athlete](?mode=athlete)")
+    st.markdown("Login as a [Coach](?mode=coach), [Athlete](?mode=athlete), or [Parent](?mode=parent)")
 
 feedback_id = int(feedback)
 athlete_id = int(athlete)
@@ -76,7 +76,6 @@ athlete_feedback = {
             'helpful': 0,
             'harmful': 0
         },
-
     }
 }
 
@@ -94,19 +93,38 @@ coach_feedback = {
     }
 }
 
+parent_feedback = {
+    1: {
+        0: {
+            'helpful': 0,
+            'harmful': 0,
+        },
+        1: {
+            'helpful': 0,
+            'harmful': 0
+        }
+    }
+}
+
 feedback = {
     1: [
         {
             'observation': 'Your foot is landing in front of your body instead of under you',
             'reason': "Increases ground contact time and reduces stride efficiency.",
+            'constraint': "Use slightly tighter wicket spacing",
             'what_to_look_for': [
                 'Foot landing in front of hip',
                 'Forward shin angle',
                 'Long backside'
-            ]
+            ],
+            'coach_check': 'Does it look like he’s striking under now?',
+            'coach_note': ''
         },
         {
-            'observation': 'Your foot is landing in front of your body instead of under you.'
+            'observation': 'Your foot is landing too far to the side of you.',
+            'reason': '',
+            'what_to_look_for': [],
+            'coach_note': ''
         }
     ]
 }
@@ -116,13 +134,15 @@ option = None
 if is_superman:
     option = st.radio(
             "⚙️ Configuration Panel",
-            ["Coach Mode", "Athlete Mode"],
+            ["Coach Mode", "Athlete Mode", "Parent Mode"],
             horizontal=True
         )
 
 if option:
     if option == "Coach Mode":
         mode = "coach"
+    elif option == "Parent Mode":
+        mode = "parent"
     else:
         mode = "athlete"
 
@@ -140,8 +160,8 @@ if action == "upload":
     st.set_page_config(layout="wide")
     st.title(TITLE)
 
-    if mode == "coach":
-        st.subheader("Analyze your athletes peformance (upload or video)")
+    if mode == "coach" or mode == "parent":
+        st.subheader("Analyze your Athletes peformance (upload or video)")
     else:   
         st.subheader("Analyze my performance (upload or video)")
 
@@ -176,6 +196,12 @@ elif action == "feedback":
         for lookfor in feedback[workout_id][feedback_id]['what_to_look_for']:
             st.write(f'- {lookfor}')
         st.write("|||| Image Overlay will go here ||||")
+    elif mode == "parent":
+        st.markdown("## Parent Dashboard : Feedback")
+        st.markdown("### 📊 Why It Matters")
+        st.write(feedback[workout_id][feedback_id]['reason'])
+        st.markdown("### 👁 What to Look For")
+
     else:
         st.markdown("## Athlete Dashboard : Feedback ")
         st.markdown("### 👁")
@@ -183,10 +209,10 @@ elif action == "feedback":
         st.write("|||| Image Overlay will go here ||||")
     if st.button("Fix it"):
         st.markdown("### 🎯 Constraint")
-        st.write("Use slightly tighter wicket spacing")
+        st.write(feedback[workout_id][feedback_id]['constraint'])
         if mode == "coach":
             st.markdown("### 🗣 Coach Check")
-            st.write("Does it look like he’s striking under now?")
+            st.write(feedback[workout_id][feedback_id]['coach_check'])
             st.write(f'''<h3><a href="?mode={mode}&model_feedback=helpful&action=celebrate" target="_self">Yes</a> | <a href="?mode={mode}&model_feedback=harmful&action=celebrate" target="_self">No</a></h5>''', unsafe_allow_html=True)
         else:
             st.markdown("### 🗣 Feel")
